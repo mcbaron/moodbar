@@ -129,3 +129,11 @@ I = repmat(Z,163, 1);
 % tiling vertically 163 times is appropriate for ~15 seconds of audio
 figure; 
 imshow(I);
+
+% After I got an image produced from this, I had a hard time matching what
+% I saw with what I heard, so I set about adapting the audio player with a
+% time marker, to better illustrate where in the image I should expect to
+% look when I hear the audio clip.
+% The toolkit for this ends up in audioPlayPlot which is called to both
+% display the image, and play the audio, easier than trying to Alt-tab in
+% time, and gustimating the progression through the image. 
