@@ -2,7 +2,7 @@
 % effectively trying to dupilcate the results of Wood and O'Keefe of the
 % University of York, in their paper "On Techniques for Content-based
 % Visual Annotation to Aid Intra-track Music Navigation"
-%
+% 
 % 20131214 -mcbaron
 
 clear;
@@ -71,12 +71,13 @@ F = [50 150 250 350 450 570 700 840 1000 1170 1370 1600 ...
 [S, F, T] = spectrogram(x, window, OLoffset, F, Fs);
 
 %  Magnitude & Normalize
-G = abs(sum(S));
-G_min = min(G);
-G_max = max(G);
-G = (G - G_min)/(G_max-G_min);
+Z = abs(sum(S));
+Z_min = min(Z);
+Z_max = max(Z);
+Z = (Z - Z_min)/(Z_max-Z_min);
 
-I = repmat(G,163, 1);
+
+I = repmat(Z,163, 1);
 % tiling vertically 163 times is appropriate for ~15 seconds of audio
 figure; 
 imshow(I);
@@ -85,3 +86,46 @@ imshow(I);
 % magnitude over the course of the audio. Very rough, but
 % psychoacoustically consistent.
 
+%% Novelty (Foote 1999)
+% The Novelty score provides a value determined by the cross dissimilarity
+% of the portions of the signal before and after the moment in time. It
+% does rely on an apriori abstraction of the signal, the self-similarity
+% matrix. 
+
+[D, ~] = selfsim(S);
+
+% Define G, a Gaussian taper weighting matriz, in order to form K, the
+% Kernel
+
+% Unfortunately, Wood and O'Keefe are very vague regarding what exactly
+% they are using when they refer to the Gaussian weighting. If you know
+% what they are using, let me know! 
+% For this exercise, I am going to use the rand function of MATLAB, which
+% historically has been proven to be a gaussian distribution.
+
+G = rand(size(D));
+
+% The checkerboard kernel constructed by Wood & O'Keefe is very simple,
+% positively weigthing the first and third quadrants of G, and negatively
+% weigthing the second and fourth quadrants. This is done below. 
+% If we wanted to use a true checkerboard weigthing, use this commented
+% code.
+% 
+% chk = invhilb(length(D), length(D)) < 0;
+% chk = 2*chk -1;
+% K = chk .* G;
+
+c = 1:floor(length(G)/2);
+h = ceil(length(G)/2):length(G);
+K = [-1*G(c,c) G(c,h); G(h,c) -1*G(h, h)];
+
+% Magnitude & Normalize
+Z = abs(sum(D*K));
+Z_min = min(Z);
+Z_max = max(Z);
+Z = (Z - Z_min)/(Z_max-Z_min);
+
+I = repmat(Z,163, 1);
+% tiling vertically 163 times is appropriate for ~15 seconds of audio
+figure; 
+imshow(I);
