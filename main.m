@@ -10,7 +10,7 @@ clear;
 % [x, Fs] = wavread('green_onions.wav');
 [x, Fs] = wavread('green_onions_sample.wav');
 % [x, Fs] = wavread('ritz_full.wav');
-% [x, Fs] = wavread('lady_bird.wav');
+% [x, Fs] = wavread('lady_bird_sample.wav');
 
 % x is a column matrix
 
@@ -78,13 +78,15 @@ Z = (Z - Z_min)/(Z_max-Z_min);
 
 
 I = repmat(Z,163, 1);
-% tiling vertically 163 times is appropriate for ~15 seconds of audio
+% tiling vertically 163 times is appropriate for 15-30 seconds of audio
 figure; 
 imshow(I);
 
 % This gives a greyscale image that reflects the changing spectrum
 % magnitude over the course of the audio. Very rough, but
 % psychoacoustically consistent.
+
+audioPlayPlot(x, Fs, I);
 
 %% Novelty (Foote 1999)
 % The Novelty score provides a value determined by the cross dissimilarity
@@ -115,18 +117,21 @@ G = rand(size(D));
 % chk = 2*chk -1;
 % K = chk .* G;
 
+% If length(G) is even, floor(length(G)/2) == ceil(length(G)/2), and we
+% have an off-by-one error.
 c = 1:floor(length(G)/2);
-h = ceil(length(G)/2):length(G);
+h = floor(length(G)/2)+1:length(G);
 K = [-1*G(c,c) G(c,h); G(h,c) -1*G(h, h)];
 
+
 % Magnitude & Normalize
-Z = abs(sum(D*K));
+Z = abs(sum(D.*K));
 Z_min = min(Z);
 Z_max = max(Z);
 Z = (Z - Z_min)/(Z_max-Z_min);
 
-I = repmat(Z,163, 1);
-% tiling vertically 163 times is appropriate for ~15 seconds of audio
+I = repmat(Z, 163, 1);
+% tiling vertically 163 times is appropriate for 15-30 seconds of audio
 figure; 
 imshow(I);
 
@@ -137,3 +142,36 @@ imshow(I);
 % The toolkit for this ends up in audioPlayPlot which is called to both
 % display the image, and play the audio, easier than trying to Alt-tab in
 % time, and gustimating the progression through the image. 
+
+audioPlayPlot(x, Fs, I);
+
+%% Rhythm Magnitude
+% Rhythm Magnitude intends to deliver the "rhythmicity" of audio. It is
+% calculated by using the rhythm spectrum, Wood and O'Keefe use the
+% algorithm proposed by Foote (1999) which involves the sum of the super
+% diagonals of the self-similarity matrix. Thankfully, we implemented this
+% summing in our selfsim function. 
+
+[~, d] = selfsim(S);
+
+% Take the magnitude of the summed superdiagonals
+Z = abs(d);
+Z_min = min(Z);
+Z_max = max(Z);
+Z = (Z - Z_min)/(Z_max-Z_min);
+
+I = repmat(Z, 163, 1);
+
+% "A higher value (ie. ligher shade) is caused by hagin more power in the
+% rhythm spectrum. A fhier lagcorrelation denotes a stronger rhythm which
+% will cause a ligher shade to be output." - Wood & O'Keefe
+% I am not really seeing this right now. I have very dark images, implying
+% a not very rhythmically centered sample of audio, but that isn't what I
+% would say listening to these selections. Probably in my implementation of
+% summing the super-dagonals.
+
+audioPlayPlot(x, Fs, I);
+
+% I will have to come back to this later. I can get through the bandwise
+% spectral magnitude without having to rectify it just yet. 
+%% Bandwise Spectral Magnitude

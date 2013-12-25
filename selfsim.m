@@ -8,23 +8,22 @@ function [Dc, d] = selfsim(S)
 % Dc -  Self-similarity matrix
 % d  -  sum of superdiagonals
 %
-% 20131218 -mcbaron
+% 20131225 -mcbaron
 
-Dc = zeros(size(S,2));
 % Self-similar if autocorrelation remains constant
 % Self-similar processes are invariant to scale, where as stochastic
 % processes are invariant to time.
 
-for i = 1:length(S)
-    for j = 1:length(S)
-        Dc(i,j) = (S(:,i)' * S(:,j))/(norm(S(:,i))*norm(S(:,j)));
-    end
+Dc = S'*S;
+N  = sqrt(diag(Dc));
+Dc = Dc./(N*N');
+% Effecient means to calculate self-similarity matrix. Thanks to Rodger
+% Stafford on the mathworks forums.
+
+d = zeros(1, size(S,2));
+for l = 1:size(S,2)
+    d(l) = sum(diag(Dc,l));
 end
 
-d = zeros(1, length(S));
-for l = 1:length(S)
-    d(l) = sum(diag(Dc,l-1));
-end 
-    
 
 end
