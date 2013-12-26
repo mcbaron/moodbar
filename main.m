@@ -7,10 +7,10 @@
 
 clear;
 
-% [x, Fs] = wavread('green_onions.wav');
-[x, Fs] = wavread('green_onions_sample.wav');
+% [x, Fs] = wavread('green_onions_sample.wav');
 % [x, Fs] = wavread('ritz_full.wav');
 % [x, Fs] = wavread('lady_bird_sample.wav');
+[x, Fs] = wavread('kind_of_blue_sample.wav');
 
 % x is a column matrix
 
@@ -68,8 +68,6 @@ Z = znorm1(abs(sum(S)));
 
 I = repmat(Z,163, 1);
 % tiling vertically 163 times is appropriate for 15-30 seconds of audio
-figure; 
-imshow(I);
 
 % This gives a greyscale image that reflects the changing spectrum
 % magnitude over the course of the audio. Very rough, but
@@ -118,8 +116,6 @@ Z = znorm1(abs(sum(D.*K)));
 
 I = repmat(Z, 163, 1);
 % tiling vertically 163 times is appropriate for 15-30 seconds of audio
-figure; 
-imshow(I);
 
 % After I got an image produced from this, I had a hard time matching what
 % I saw with what I heard, so I set about adapting the audio player with a
@@ -143,6 +139,7 @@ audioPlayPlot(x, Fs, I);
 % Take the magnitude of the summed superdiagonals
 Z = znorm1(abs(d));
 
+
 I = repmat(Z, 163, 1);
 
 % "A higher value (ie. ligher shade) is caused by hagin more power in the
@@ -153,7 +150,7 @@ I = repmat(Z, 163, 1);
 % would say listening to these selections. Probably in my implementation of
 % summing the super-dagonals.
 
-audioPlayPlot(x, Fs, I);
+% audioPlayPlot(x, Fs, I);
 
 % I will have to come back to this later. I can get through the bandwise
 % spectral magnitude without having to rectify it just yet. 
@@ -162,11 +159,33 @@ audioPlayPlot(x, Fs, I);
 % give color to the bar. Since we are using 26 frequency bands, instead of
 % the 24 that Wood and O'Keefe are using, we need to be creative about
 % which frequency bands are considered high, mid, and low. 
-% I propose 9, 9, and 8. 
+% I propose 8, 9, and 9. 
+% Zl = znorm1(abs(sum(S(1:8, :))));
+% Zm = znorm1(abs(sum(S(9:17, :))));
+% Zh = znorm1(abs(sum(S(18:26, :))));
 
 % Or we can use the rewquency channels of the Graphic EQ, of which there
 % are 30, which divides evenly into 3 bands.
-Zr = znorm1(abs(S(1:10, :)));
-Zg = znorm1(abs(S(11:20, :)));
-Zb = znorm1(abs(S(21:30, :)));
+Zl = znorm1(abs(sum(S(1:10, :))));
+Zm = znorm1(abs(sum(S(11:20, :))));
+Zh = znorm1(abs(sum(S(21:30, :))));
+% 
+% Using the full 30 frequency channels gives a bigger contrast in songs
+% with a fair amount of lower frequency content, such as with singers, as
+% higher pitched phrasing turns green, where in the Bark scale, the
+% vocalist's phrasing is still blue. However, when looking at a song with a
+% trumpet part, the higher frequencies of a trumpet are made more red with
+% he Bark spectrum.
 
+Ir = repmat(Zh, 163, 1); % HF -> R
+Ig = repmat(Zm, 163, 1); % MF -> G
+Ib = repmat(Zl, 163, 1); % LF -> B
+
+image = cat(3, Ir, Ig, Ib);
+% I like blue as lower frequencies and red as representational of higher
+% frequencies, it just makes more psychoacoustic sense to me.
+audioPlayPlot(x, Fs, image);
+
+%% Bandwise Rhythm Magnitude
+% sigh, looks like I need to fix general rhythm magnitude before I can get
+% to this just yet. 
