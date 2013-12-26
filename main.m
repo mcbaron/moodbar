@@ -28,13 +28,6 @@ nfft = 512; % Nw/2?
 % Mix to mono to prevent any problematic stereo seperation effects
 x = sum(x,2);
 
-% Normalization of output of track before changing to color
-%           (v - v_min)
-% v_norm = ---------------
-%          (v_max - v_min)
-% x_min = min(x);
-% x_max = max(x);
-% x = (x - x_min)/(x_max-x_min);
 
 %% Spectral Magnitude
 
@@ -58,24 +51,20 @@ x = sum(x,2);
 
 % We calculate the STFT at the center frequencies of each of the critical
 % bands outlined by the table for the Bark scale critical frequencies.
-F = [50 150 250 350 450 570 700 840 1000 1170 1370 1600 ...
-       1850 2150 2500 2900 3400 4000 4800 5800 7000 8500 10500 13500 ...
-       16000 18500];
-   
+% F = [50 150 250 350 450 570 700 840 1000 1170 1370 1600 ...
+%        1850 2150 2500 2900 3400 4000 4800 5800 7000 8500 10500 13500 ...
+%        16000 18500];
+%    
 % A different spectrum weighting scheme utilizing the center frequencies of
 % a graphic EQ. Failed my pshychoacoustic experiments.
 % The center frequencies on a dbx 2231 graphic EQ:
-% F = [20 25 31.5 40 50 63 80 100 125 160 200 250 315 400 500 630 800 1000 ...
-%     1250 2000 2500 3150 4000 5000 6300 8000 10000 12500 16000 20000];
+F = [20 25 31.5 40 50 63 80 100 125 160 200 250 315 400 500 630 800 1000 ...
+    1250 2000 2500 3150 4000 5000 6300 8000 10000 12500 16000 20000];
 
 [S, F, T] = spectrogram(x, window, OLoffset, F, Fs);
 
 %  Magnitude & Normalize
-Z = abs(sum(S));
-Z_min = min(Z);
-Z_max = max(Z);
-Z = (Z - Z_min)/(Z_max-Z_min);
-
+Z = znorm1(abs(sum(S)));
 
 I = repmat(Z,163, 1);
 % tiling vertically 163 times is appropriate for 15-30 seconds of audio
@@ -125,10 +114,7 @@ K = [-1*G(c,c) G(c,h); G(h,c) -1*G(h, h)];
 
 
 % Magnitude & Normalize
-Z = abs(sum(D.*K));
-Z_min = min(Z);
-Z_max = max(Z);
-Z = (Z - Z_min)/(Z_max-Z_min);
+Z = znorm1(abs(sum(D.*K)));
 
 I = repmat(Z, 163, 1);
 % tiling vertically 163 times is appropriate for 15-30 seconds of audio
@@ -155,10 +141,7 @@ audioPlayPlot(x, Fs, I);
 [~, d] = selfsim(S);
 
 % Take the magnitude of the summed superdiagonals
-Z = abs(d);
-Z_min = min(Z);
-Z_max = max(Z);
-Z = (Z - Z_min)/(Z_max-Z_min);
+Z = znorm1(abs(d));
 
 I = repmat(Z, 163, 1);
 
@@ -175,3 +158,15 @@ audioPlayPlot(x, Fs, I);
 % I will have to come back to this later. I can get through the bandwise
 % spectral magnitude without having to rectify it just yet. 
 %% Bandwise Spectral Magnitude
+% We break up the Spectral Magnitude metric into three bands (R, G, B) to
+% give color to the bar. Since we are using 26 frequency bands, instead of
+% the 24 that Wood and O'Keefe are using, we need to be creative about
+% which frequency bands are considered high, mid, and low. 
+% I propose 9, 9, and 8. 
+
+% Or we can use the rewquency channels of the Graphic EQ, of which there
+% are 30, which divides evenly into 3 bands.
+Zr = znorm1(abs(S(1:10, :)));
+Zg = znorm1(abs(S(11:20, :)));
+Zb = znorm1(abs(S(21:30, :)));
+
