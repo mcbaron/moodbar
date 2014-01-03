@@ -18,10 +18,10 @@ Dc = S'*S;
 N  = sqrt(diag(Dc));
 Dc = Dc./(N*N');
 % Effecient means to calculate self-similarity matrix. Thanks to Rodger
-% Stafford on the mathworks forums.
+% Stafford on the Mathworks forums.
 
-d = zeros(1, size(S,2));
-for l = 1:size(S,2)
+d = zeros(1, size(S,2)-1);
+for l = 2:size(S,2)
     d(l) = sum(diag(Dc,l));
 end
 

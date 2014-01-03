@@ -7,6 +7,9 @@ function f = audioPlayPlot(x, Fs, bardata)
 % easier than trying to Alt-tab in time, and gustimating the progression
 % through the image.   20131222  -mcbaron
 
+% edited on 20140102 to auto-repmat the bardata
+
+bardata = repmat(bardata, length(bardata)/16, 1);
 
 % create the plot of moodbar
 f = figure;
